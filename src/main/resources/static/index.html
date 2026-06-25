@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Chat Bot</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 750px; margin: 50px auto; padding: 20px; }
+        input { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
+        button { padding: 10px 20px; background: #2E7D32; color: white; border: none; cursor: pointer; font-size: 16px; border-radius: 4px; }
+        #answer { margin-top: 20px; padding: 15px; background: #E8F5E9; border-radius: 8px; line-height: 1.6; }
+        #sources { margin-top: 15px; }
+        .source-chunk { background: #f5f5f5; border-left: 4px solid #2E7D32; padding: 10px; margin-bottom: 10px; border-radius: 4px; font-size: 13px; color: #424242; }
+        .source-title { font-weight: bold; color: #1B5E20; margin-bottom: 6px; }
+        h4 { color: #2E7D32; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+<h2>Spring Boot PDF Chat Bot</h2>
+<input type="text" id="question" placeholder="Ask a question about the PDF..." />
+<button onclick="askQuestion()">Ask</button>
+
+<div id="answer"></div>
+
+<div id="sources"></div>
+
+<script>
+    async function askQuestion() {
+        const question = document.getElementById("question").value;
+        document.getElementById("answer").innerHTML = "<i>Thinking...</i>";
+        document.getElementById("sources").innerHTML = "";
+
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: question })
+        });
+
+        const data = await response.json();
+
+        // Show main answer
+        document.getElementById("answer").innerHTML =
+            "<h4>Answer</h4>" + data.answer;
+
+        // Show source chunks
+        if (data.sources && data.sources.length > 0) {
+            let sourcesHtml = "<h4>Sources Used (" + data.sources.length + " chunks)</h4>";
+            data.sources.forEach((chunk, index) => {
+                sourcesHtml += `
+                    <div class="source-chunk">
+                        <div class="source-title">Chunk ${index + 1}</div>
+                        ${chunk}
+                    </div>`;
+            });
+            document.getElementById("sources").innerHTML = sourcesHtml;
+        }
+    }
+</script>
+</body>
+</html>
